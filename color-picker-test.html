@@ -193,8 +193,6 @@
         const y = event.offsetY;
         const imageData = ctx.getImageData(x, y, 1, 1).data;
         const rgbColor = `rgb(${imageData[0]}, ${imageData[1]}, ${imageData[2]})`;
-        // color2push = rgbColor;
-        alert("new color: ", String(rgbColor))
         document.getElementById("right-box").style.backgroundColor = rgbColor;
       });
     }
