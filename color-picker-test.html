@@ -45,11 +45,7 @@
       padding: 5px 10px;
       cursor: pointer;
     }
-    #color-canvas {
-      width: 200px;
-      height: 200px;
-      /* border: 2px solid black; */
-      border-radius: 10px;
+    #color-dropdown {
       margin-top: 20px;
     }
   </style>
@@ -61,12 +57,12 @@
   </div>
   <div id="color-picker">
     <input type="color" id="custom-color-input">
-    <button id="add-custom-color">Use Color</button>
   </div>
+  <button id="add-custom-color">Add Color</button>
   <canvas id="color-canvas"></canvas>
-  <div id="color-options">
-    <select id="color-dropdown"></select>
-  </div>
+  <select id="color-dropdown">
+    <option value="" selected disabled>Select a color</option>
+  </select>
 
   <script>
     // Array of 31 predefined colors
@@ -74,7 +70,9 @@
 
     let currentIndex = 0;
     let usedColors = [];
-    let customColors = [];
+    let customColors = []; // Array to store custom colors
+    let colorNames = {}; // Object to store color names
+    let color2push = '';
 
     // Function to display the current color
     function displayColor() {
@@ -99,17 +97,56 @@
     }
 
     // Function to handle adding custom color
+    // Function to handle adding custom color
+    // function addCustomColor() {
+    //     const customColorInput = document.getElementById("custom-color-input");
+    //     const customColor = customColorInput.value;
+    //     if (customColor) {
+    //         customColors.push(customColor);
+    //         currentIndex = customColors.length - 1 + colors.length; // Adjust index for custom colors
+    //         generateColorOptions();
+    //         displayColor();
+    //         document.getElementById("color-picker").style.display = "none"; // Hide custom color block
+    //         document.getElementById("left-box").style.display = "block"; // Show left box again
+
+    //         // Prompt for color name
+    //         const colorName = prompt("Please enter a name for this color:");
+    //         if (colorName) {
+    //         colorNames[customColor] = colorName;
+    //         updateColorDropdown();
+    //         }
+    //     }
+    // }
+
+    // Function to handle adding custom color
     function addCustomColor() {
-      const customColorInput = document.getElementById("custom-color-input");
-      const customColor = customColorInput.value;
-      if (customColor) {
-        customColors.push(customColor);
-        updateColorDropdown();
+    const selectedColor = document.getElementById("right-box").style.backgroundColor;
+    if (selectedColor) {
+        customColors.push(selectedColor);
+        currentIndex = customColors.length - 1 + colors.length; // Adjust index for custom colors
         displayColor();
         document.getElementById("color-picker").style.display = "none"; // Hide custom color block
         document.getElementById("left-box").style.display = "block"; // Show left box again
-      }
+
+        // Prompt for color name
+        const colorName = prompt("Please enter a name for this color:");
+        if (colorName) {
+        colorNames[selectedColor] = colorName;
+        updateColorDropdown();
+        }
     }
+    }
+
+    // Function to update color dropdown with custom colors and their names
+    function updateColorDropdown() {
+    const colorDropdown = document.getElementById("color-dropdown");
+    colorDropdown.innerHTML = '<option value="" selected disabled>Select a color</option>';
+    customColors.forEach((color) => {
+        const colorName = colorNames[color] || "Custom Color";
+        colorDropdown.innerHTML += `<option value="${color}" style="color: black;">${colorName}</option>`;
+    });
+    }
+
 
     // Function to handle left box click
     function leftBoxClick() {
@@ -156,25 +193,14 @@
         const y = event.offsetY;
         const imageData = ctx.getImageData(x, y, 1, 1).data;
         const rgbColor = `rgb(${imageData[0]}, ${imageData[1]}, ${imageData[2]})`;
+        // color2push = rgbColor;
+        alert("new color: ", String(rgbColor))
         document.getElementById("right-box").style.backgroundColor = rgbColor;
-      });
-    }
-
-    // Function to update color dropdown with custom colors
-    function updateColorDropdown() {
-      const colorDropdown = document.getElementById("color-dropdown");
-      colorDropdown.innerHTML = "<option value=''>Choose Color</option>";
-      customColors.forEach((color, index) => {
-        const option = document.createElement("option");
-        option.value = color;
-        option.text = `Custom Color ${index + 1}`;
-        colorDropdown.appendChild(option);
       });
     }
 
     // Display initial color and options
     displayColor();
-    updateColorDropdown();
 
     // Add event listener to left box click
     document.getElementById("left-box").addEventListener("click", leftBoxClick);
@@ -189,6 +215,9 @@
         document.getElementById("right-box").style.backgroundColor = selectedColor;
       }
     });
+
+    // Update color dropdown with initial custom colors and names
+    updateColorDropdown();
   </script>
 </body>
 </html>
