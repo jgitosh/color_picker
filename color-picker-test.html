@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Color Picker</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      text-align: center;
+    }
+    .container {
+      display: flex;
+      justify-content: space-between;
+      margin: 20px auto;
+      max-width: 600px;
+    }
+    .box {
+      width: 45%;
+      height: 200px;
+      border: 2px solid black;
+      border-radius: 10px;
+    }
+    #left-box {
+      background-color: white;
+      cursor: pointer;
+    }
+    #right-box {
+      background-color: #FF0000; /* Initial color */
+    }
+    #color-picker {
+      margin-top: 20px;
+      display: none;
+    }
+    .color-option {
+      display: inline-block;
+      width: 30px;
+      height: 30px;
+      margin: 5px;
+      cursor: pointer;
+      border-radius: 50%;
+    }
+    #add-custom-color {
+      margin-top: 10px;
+      padding: 5px 10px;
+      cursor: pointer;
+    }
+    #color-canvas {
+      width: 200px;
+      height: 200px;
+      /* border: 2px solid black; */
+      border-radius: 10px;
+      margin-top: 20px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div id="left-box" class="box"></div>
+    <div id="right-box" class="box"></div>
+  </div>
+  <div id="color-picker">
+    <input type="color" id="custom-color-input">
+    <button id="add-custom-color">Use Color</button>
+  </div>
+  <canvas id="color-canvas"></canvas>
+  <div id="color-options">
+    <select id="color-dropdown"></select>
+  </div>
+
+  <script>
+    // Array of 31 predefined colors
+    const colors = ["#FF0000", "#00FF00", "#0000FF", "#FFFF00", "#FF00FF", "#00FFFF", "#FFA500", "#800080", "#008000", "#000080", "#800000", "#008080", "#808000", "#C0C0C0", "#808080", "#FFC0CB", "#FFD700", "#FF8C00", "#32CD32", "#7CFC00", "#40E0D0", "#20B2AA", "#87CEEB", "#6495ED", "#ADFF2F", "#B0E0E6", "#FA8072", "#FF6347", "#4682B4", "#191970", "#FF69B4"];
+
+    let currentIndex = 0;
+    let usedColors = [];
+    let customColors = [];
+
+    // Function to display the current color
+    function displayColor() {
+      const rightBox = document.getElementById("right-box");
+      rightBox.style.backgroundColor = colors[currentIndex];
+    }
+
+    // Function to generate color options
+    function generateColorOptions() {
+      const colorPicker = document.getElementById("color-picker");
+      colorPicker.innerHTML = "";
+      colors.forEach((color, index) => {
+        const colorOption = document.createElement("div");
+        colorOption.classList.add("color-option");
+        colorOption.style.backgroundColor = color;
+        colorOption.addEventListener("click", () => {
+          currentIndex = index;
+          displayColor();
+        });
+        colorPicker.appendChild(colorOption);
+      });
+    }
+
+    // Function to handle adding custom color
+    function addCustomColor() {
+      const customColorInput = document.getElementById("custom-color-input");
+      const customColor = customColorInput.value;
+      if (customColor) {
+        customColors.push(customColor);
+        updateColorDropdown();
+        displayColor();
+        document.getElementById("color-picker").style.display = "none"; // Hide custom color block
+        document.getElementById("left-box").style.display = "block"; // Show left box again
+      }
+    }
+
+    // Function to handle left box click
+    function leftBoxClick() {
+      if (usedColors.length === colors.length) {
+        // If all colors are looped, open color palette
+        openColorPalette();
+        document.getElementById("left-box").style.display = "none"; // Hide left box
+      } else {
+        currentIndex = Math.floor(Math.random() * colors.length);
+        while (usedColors.includes(currentIndex)) {
+          currentIndex = Math.floor(Math.random() * colors.length);
+        }
+        usedColors.push(currentIndex);
+        displayColor();
+      }
+    }
+
+    // Function to open color palette
+    function openColorPalette() {
+      const colorCanvas = document.getElementById("color-canvas");
+      const ctx = colorCanvas.getContext("2d");
+      const centerX = colorCanvas.width / 2;
+      const centerY = colorCanvas.height / 2;
+      const radius = colorCanvas.width / 2;
+
+      ctx.clearRect(0, 0, colorCanvas.width, colorCanvas.height);
+
+      for (let angle = 0; angle < 360; angle += 1) {
+        const startAngle = (angle - 1) * Math.PI / 180;
+        const endAngle = angle * Math.PI / 180;
+        const gradient = ctx.createRadialGradient(centerX, centerY, 0, centerX, centerY, radius);
+        gradient.addColorStop(0, 'hsl(' + angle + ', 100%, 50%)');
+        gradient.addColorStop(1, 'white');
+        ctx.fillStyle = gradient;
+        ctx.beginPath();
+        ctx.moveTo(centerX, centerY);
+        ctx.arc(centerX, centerY, radius, startAngle, endAngle);
+        ctx.closePath();
+        ctx.fill();
+      }
+
+      colorCanvas.addEventListener("click", function(event) {
+        const x = event.offsetX;
+        const y = event.offsetY;
+        const imageData = ctx.getImageData(x, y, 1, 1).data;
+        const rgbColor = `rgb(${imageData[0]}, ${imageData[1]}, ${imageData[2]})`;
+        document.getElementById("right-box").style.backgroundColor = rgbColor;
+      });
+    }
+
+    // Function to update color dropdown with custom colors
+    function updateColorDropdown() {
+      const colorDropdown = document.getElementById("color-dropdown");
+      colorDropdown.innerHTML = "<option value=''>Choose Color</option>";
+      customColors.forEach((color, index) => {
+        const option = document.createElement("option");
+        option.value = color;
+        option.text = `Custom Color ${index + 1}`;
+        colorDropdown.appendChild(option);
+      });
+    }
+
+    // Display initial color and options
+    displayColor();
+    updateColorDropdown();
+
+    // Add event listener to left box click
+    document.getElementById("left-box").addEventListener("click", leftBoxClick);
+
+    // Add event listener to add custom color button
+    document.getElementById("add-custom-color").addEventListener("click", addCustomColor);
+
+    // Add event listener to color dropdown change
+    document.getElementById("color-dropdown").addEventListener("change", function() {
+      const selectedColor = this.value;
+      if (selectedColor) {
+        document.getElementById("right-box").style.backgroundColor = selectedColor;
+      }
+    });
+  </script>
+</body>
+</html>
